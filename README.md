@@ -1,40 +1,40 @@
 # GymFreak
 
-**Evidence-based training insights — then the app you actually use in the gym.**
+**Evidence-based training insights on a real AI & data stack — then the app you actually use in the gym.**
 
-GymFreak starts as a companion on **Hevy exports** (and Sleep Cycle nights from an Apple Health export): ingest, quality, analytics, and comparisons to **cited literature** — not a chatbot inventing a split. Later it becomes the logger (offline-first), then diet + sleep as product, then social/habits, then the stores.
+GymFreak turns training history (and sleep from an Apple Health export) into explainable insights versus **cited literature ranges** — not a chatbot inventing a split or loads. The same system is the logger (PWA): gym, sleep, and diet on one calendar so those pillars reinforce each other.
 
-> **Live demo:** coming soon (always-on).  
+> **Live:** [https://gymfreak.be](https://gymfreak.be)  
 > **This repo is documentation only.** Application source stays private.  
 > Not medical advice.
 
 Built by [Lennaert De Schepper](https://www.linkedin.com/in/lennaert-de-schepper-b40649334) — Applied Informatics, **AI & Data Engineer**, HOGENT.
 
-Sister project (golf improvement): [Caddie_Public](https://github.com/Lennaertds/Caddie_Public).
-
-Product UI: **English**.
+Product UI: **English-first**.
 
 ---
 
-## What a recruiter should take away
+## The point
 
-Job A is visible **data engineering + evidence-as-data**, not three charts. Job B (the long product) is a single system for train / eat / sleep — that is not the LinkedIn copy.
+This is an **AI & data engineering** product with a gym front door.
+
+You should be able to point at a real pipeline: ingest and quality checks on training (and sleep) exports, analytical tables on DuckDB/Parquet, a versioned evidence pack with cited ranges, and session proposals that a rules engine must accept before anything becomes kilos. The web app is how that system shows up; the stack behind it is the story.
 
 ```mermaid
 flowchart LR
-  subgraph in [Inputs]
+  subgraph inputs [Inputs]
     Hevy[Hevy CSV]
-    Sleep[Sleep Cycle via Health export]
+    Sleep[Sleep via Health export]
     Lit[Evidence pack]
   end
-  subgraph plat [Platform]
-    Ingest[Ingest + quality]
+  subgraph platform [Platform]
+    Ingest[Ingest and quality]
     PG[(PostgreSQL)]
-    Duck[DuckDB / Parquet]
+    Duck[DuckDB on Parquet]
     Eng[Rules engine]
   end
-  subgraph out [Out]
-    Web[Next.js insights]
+  subgraph outputs [Out]
+    Web[Insights and PWA]
   end
   Hevy --> Ingest
   Sleep --> Ingest
@@ -45,34 +45,45 @@ flowchart LR
   Eng --> Web
 ```
 
-Public demo: **anonymous aggregates** only. Logged-in users may upload their own Hevy CSV and see their own history. Raw health files are not in git.
+Public demo: **anonymous aggregates** for guests. Logged-in users may upload their own Hevy CSV and see their own history. Raw health files are not in git.
+
+---
+
+## AI engineering
+
+The interest signal is systems that stay honest under load — not a free-form coach.
+
+| Layer | What it does |
+|-------|----------------|
+| **Rules + cited ranges** | Volume, frequency, stall heuristics, and sleep bands live in a versioned pack. App claims are either **method** (product decision) or **cited** (literature band). Papers support or challenge; they do not silently rewrite the product. |
+| **Retrieval** | Search over a literature corpus so “why” can point at sources. Lexical search first; denser retrieval only if measured gains justify it. |
+| **Proposals under the engine** | Session / routine suggestions must pass the same rules that own kilos and capacity. An LLM may paraphrase sources; it does **not** prescribe loads. |
+
+LinkedIn one-liner: *Rules that branch by goal and load, retrieval over the papers you can cite, and a routine the engine has to accept.*
 
 ---
 
 ## Stack (high level)
 
-Same *family* as Caddie (polyglot, Postgres as the only writer of user data). Different job.
+Same *family* as Caddie (polyglot, Postgres as the only writer of user data). Different job. Hosted on Railway as **gymfreak.be** (same project as Caddie, own hostname).
 
-| Layer | Choice | Job |
-|-------|--------|-----|
-| Web | Next.js 15, React, TypeScript | Product site, insights, legal |
-| Public API | NestJS, TypeScript | Accounts, uploads, entitlements |
-| Analytics | Python (FastAPI / CLI) | Hevy + Sleep Cycle ingest, engine batch |
-| OLTP | PostgreSQL | Users, files, job status |
-| Time-series | TimescaleDB (same Postgres) | Volume / progress / sleep by day |
+| Layer | Choice | Role |
+|-------|--------|------|
+| Web / PWA | Next.js, React, TypeScript | Product site, insights, logger, legal |
+| API | NestJS, TypeScript | Accounts, uploads, entitlements, engine path |
+| Analytics | Python | Ingest, derive, evidence / batch analytics |
+| OLTP | PostgreSQL | Users, files, job status — **only writer** of user data |
 | OLAP | DuckDB on Parquet | Demo aggregates, analytical queries |
-| Vectors | pgvector (same Postgres) | Evidence passages / “why” (when wired) |
-| Quality | Great Expectations (target) | Ingest / derived checks |
-| Hosting | Railway (same project as Caddie, **own hostname**) | Always-on, one bill, two brand domains |
+| Hosting | Railway | Always-on brand domain |
 
-Phase 1 does **not** ship Expo, diet-as-product, or social. The engine compares volume, frequency, stall (heuristic: four sessions without a best-set improvement), and sleep to priors. An LLM may paraphrase sources; it does **not** prescribe loads.
+**Later / when metrics win** (not day-one production claims): time-series on the same Postgres, background queues, vector index for evidence if it beats the current search baseline, stronger ingest quality gates.
 
 ---
 
 ## What this repo is not
 
-- Not the application source, evidence YAML dumps, or raw training/health files.
+- Not the application source, evidence dumps, or raw training / health files.
 - Not credentials, env files, schemas, or API maps.
-- Not a medical device and not a Hevy clone on day one.
+- Not a security playbook and not a medical device.
 
 All rights reserved. See [LICENSE](./LICENSE).
